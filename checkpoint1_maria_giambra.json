@@ -1,0 +1,250 @@
+{
+  "name": "checkpoint1_maria_giambra - Agente Base Triaje Comercial",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "responseMode": "lastNode"
+        }
+      },
+      "id": "9041663f-9ef6-4fd0-ad59-a517d4490c27",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "d160a461-e6dc-4ac3-84de-e5eca3e3cc09"
+    },
+    {
+      "parameters": {
+        "agent": "toolsAgent",
+        "promptType": "auto",
+        "options": {
+          "systemMessage": "# 1. ROL\nSos el Asistente de Triaje de Consultas Comerciales de Quirino Bebidas, distribuidora de bebidas premium de Buenos Aires con más de 30 años en el rubro (local en San José 1849, CABA). Atendés el primer contacto de clientes minoristas y mayoristas (bares, restaurantes, vinotecas y empresas).\n\n# 2. ÁMBITO\n- Solo respondés consultas vinculadas a la compra de bebidas, regalería y regalos empresariales de Quirino Bebidas.\n- Información institucional que podés dar: local en San José 1849 (CABA); canales de venta: local, WhatsApp, Mercado Libre y la web quirinobebidas.com.ar.\n- Fuera de alcance: recetas, salud, política, otros comercios, soporte técnico o cualquier tema ajeno a la venta de bebidas.\n\n# 3. OBJETIVO DE LA SESIÓN\n1. Entender la necesidad del cliente: producto o categoría, cantidad, ocasión, plazo y tipo de cliente (minorista, mayorista o empresa).\n2. Clasificar la consulta en una de estas categorías: CONSULTA_SIMPLE, PEDIDO_MAYORISTA, REGALO_EMPRESARIAL, RECLAMO o FUERA_DE_ALCANCE.\n3. Si es CONSULTA_SIMPLE o FUERA_DE_ALCANCE: responder directamente, sin usar herramientas.\n4. Si es PEDIDO_MAYORISTA, REGALO_EMPRESARIAL o RECLAMO: derivar al equipo comercial usando la herramienta \"Derivar_a_Equipo_Comercial\" y confirmarle al cliente que un vendedor lo va a contactar.\n5. Cerrar siempre con un próximo paso concreto.\n\n# 4. REGLAS Y RESTRICCIONES\n- No inventes precios, stock, marcas, plazos de entrega ni descuentos. No tenés acceso a la lista de precios: si piden un precio, indicá que un vendedor lo confirma y, si corresponde, derivá.\n- No confirmes pedidos, no tomes pagos, no apliques descuentos y no prometas fechas: esas acciones las realiza el equipo comercial.\n- No pidas ni registres datos sensibles (tarjetas, claves, documentos de identidad).\n- Venta de alcohol solo a mayores de 18 años: si el cliente indica ser menor, cortá la venta con cortesía y no derives.\n- Usá la herramienta como máximo una vez por consulta.\n- Respuestas breves, cordiales y profesionales, en español rioplatense con lenguaje estándar: no uses lenguaje inclusivo (nada de \"x\", \"@\", \"e\" ni desdoblamientos del tipo \"los/las\").\n\n# 5. ESCALAMIENTO\nDerivá con la herramienta cuando:\n- El cliente pide 24 unidades o más, un presupuesto mayorista o abrir cuenta como bar, restaurante o vinoteca.\n- Solicita regalos empresariales, cajas personalizadas o artículos con logo.\n- Hay un reclamo, devolución o problema con un pedido anterior.\nDespués de derivar respondé: \"Ya le pasé tu consulta al equipo comercial; un vendedor te va a contactar a la brevedad.\" Si el cliente no dejó un dato de contacto, pedíselo.",
+          "maxIterations": 7,
+          "returnIntermediateSteps": true
+        }
+      },
+      "id": "703be76d-c8c3-44ad-a0db-885d07b4a543",
+      "name": "AI Agent - Triaje Comercial",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {
+          "temperature": 0.2,
+          "maxTokens": 1024
+        }
+      },
+      "id": "d7ddda9a-9d31-4246-bdd6-cb69d1f5e405",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        180,
+        240
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Envía un correo interno de DERIVACIÓN al equipo comercial de Quirino Bebidas para que un vendedor humano tome la consulta.\n\nCUÁNDO USARLA (decisión autónoma del agente):\n- PEDIDO_MAYORISTA: el cliente pide 24 unidades o más de uno o varios productos, solicita un presupuesto mayorista o quiere abrir cuenta como bar, restaurante, vinoteca o distribuidor.\n- REGALO_EMPRESARIAL: pide regalos para empresas o eventos, cajas o kits personalizados, artículos con logo o cantidades para fin de año.\n- RECLAMO: menciona un pedido anterior con problemas (faltante, rotura, demora, producto equivocado), una devolución o un cambio.\n\nCUÁNDO NO USARLA:\n- Saludos, agradecimientos o charla sin intención de compra.\n- Consultas simples de un cliente minorista (dirección del local, canales de venta, recomendación general de una categoría).\n- Temas fuera del rubro bebidas o pedidos de un menor de edad.\n- Si ya se usó una vez en la misma consulta.\n\nQUÉ ENVIAR: en el asunto, la categoría y un resumen corto (ej.: \"[PEDIDO_MAYORISTA] Bar en Palermo - 48 botellas de Malbec\"). En el cuerpo: resumen de la necesidad, productos y cantidades mencionadas, tipo de cliente, plazo pedido y datos de contacto que haya dejado el cliente (o \"sin datos de contacto\").",
+        "sendTo": "majoquirinobebidas@gmail.com",
+        "subject": "={{ $fromAI('asunto', 'Categoría entre corchetes y resumen corto de la consulta derivada', 'string') }}",
+        "emailType": "text",
+        "message": "={{ $fromAI('cuerpo', 'Resumen de la necesidad del cliente: productos, cantidades, tipo de cliente, plazo y datos de contacto', 'string') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "54299b03-62de-4698-b1d9-f009918f29d2",
+      "name": "Derivar_a_Equipo_Comercial",
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        420,
+        240
+      ],
+      "webhookId": "3a20cf59-1a81-49d5-bf47-8812cd6cc254",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Jb6OOpWnocxIHxvK",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Construye el reporte de observabilidad (Execution Log) del agente\nconst out = $input.first().json;\nconst steps = out.intermediateSteps || [];\nconst pregunta = $('Chat Trigger').first().json.chatInput || '(sin mensaje)';\nconst sessionId = $('Chat Trigger').first().json.sessionId || 'n/d';\nconst esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');\n\nlet filas = '';\nsteps.forEach((s, i) => {\n  const a = s.action || {};\n  const obs = typeof s.observation === 'string' ? s.observation : JSON.stringify(s.observation);\n  filas += `<tr><td>${i + 1}</td><td><b>${esc(a.tool)}</b></td>` +\n           `<td><pre>${esc(JSON.stringify(a.toolInput))}</pre></td>` +\n           `<td><pre>${esc((a.log || '').slice(0, 800))}</pre></td>` +\n           `<td><pre>${esc((obs || '').slice(0, 1500))}</pre></td></tr>`;\n});\nif (!filas) filas = '<tr><td colspan=\"5\">El agente respondió sin usar herramientas.</td></tr>';\n\nconst html = `<h2>Log de ejecución – Agente de Triaje Comercial - Quirino Bebidas</h2>\n<p><b>Fecha:</b> ${new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}<br>\n<b>Sesión:</b> ${esc(sessionId)}<br>\n<b>Herramientas usadas:</b> ${steps.length} (límite de iteraciones: 7)</p>\n<h3>Mensaje del cliente</h3><blockquote>${esc(pregunta)}</blockquote>\n<h3>Recorrido del razonamiento (ciclo ReAct)</h3>\n<table border=\"1\" cellpadding=\"6\" style=\"border-collapse:collapse;font-size:12px\">\n<tr style=\"background:#eee\"><th>#</th><th>Tool</th><th>Input</th><th>Razonamiento</th><th>Resultado (observation)</th></tr>\n${filas}</table>\n<h3>Respuesta final del agente</h3><blockquote>${esc(out.output).replace(/\\n/g,'<br>')}</blockquote>`;\n\nreturn [{ json: {\n  output: out.output,\n  pregunta,\n  sessionId,\n  herramientasUsadas: steps.length,\n  asunto: `[Log Agente] ${steps.length} tool(s) | ${pregunta.slice(0, 60)}`,\n  html\n} }];"
+      },
+      "id": "7ca0825a-cff5-40e7-8c41-a0e29b34c7af",
+      "name": "Armar Execution Log",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "majoquirinobebidas@gmail.com",
+        "subject": "={{ $json.asunto }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "0563d128-aee8-4382-907e-29605ec4cd30",
+      "name": "Gmail - Reporte de Observabilidad",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        840,
+        0
+      ],
+      "webhookId": "bcec57ab-b14e-4dd0-b032-3ccc48890ce1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Jb6OOpWnocxIHxvK",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4d5bbe2c-735c-45b3-88aa-96713df3e66b",
+              "name": "output",
+              "value": "={{ $('Armar Execution Log').item.json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3418221c-57f0-4ae8-8dfe-d659c83f5c01",
+      "name": "Respuesta al Chat",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1060,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Checkpoint 1 · Agente Base (M1) — Quirino Bebidas\n**Chat Trigger** → **AI Agent (Tools Agent · máx. 7 iteraciones)** → **Execution Log** → **Gmail (observabilidad)** → **Respuesta**\n\n- Modelo: OpenAI Chat Model (GPT-4o, temp 0.2)\n- Tool lateral: Gmail `Derivar_a_Equipo_Comercial` (el agente decide cuándo derivar)\n- Observabilidad: intermediateSteps → mail HTML de supervisión\n\nPrueba: *\"Hola, tengo un bar en Palermo y necesito presupuesto por 48 botellas de Malbec y 24 de gin para la semana que viene. Soy Martín, 11-5555-1234.\"*",
+        "height": 320,
+        "width": 560,
+        "color": 5
+      },
+      "id": "513ae6cd-dc62-4e27-bf6c-160f6646ac41",
+      "name": "Nota - Documentación",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -360
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Triaje Comercial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Triaje Comercial",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Derivar_a_Equipo_Comercial": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent - Triaje Comercial",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Triaje Comercial": {
+      "main": [
+        [
+          {
+            "node": "Armar Execution Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar Execution Log": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Reporte de Observabilidad",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Reporte de Observabilidad": {
+      "main": [
+        [
+          {
+            "node": "Respuesta al Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Argentina/Buenos_Aires"
+  },
+  "id": "GdpVn9Hidq1b34in",
+  "tags": []
+}
