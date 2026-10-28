@@ -31,3 +31,12 @@ Primera versión del proyecto integrador: **Agente de Triaje de Consultas Comerc
 ## Importar
 
 n8n → *Import from File* → `checkpoint1_maria_giambra.json` → asignar las credenciales de OpenAI y Gmail.
+
+## Prueba de ejecución (28/10/2026)
+
+Prompt: *"Hola, tengo un bar en Palermo y necesito presupuesto por 48 botellas de Malbec y 24 de gin para la semana que viene."*
+
+- Todos los nodos se ejecutaron en verde (Success en 7,5 s · 2.464 tokens).
+- El agente clasificó la consulta como **PEDIDO_MAYORISTA** y decidió por su cuenta activar la tool `Derivar_a_Equipo_Comercial`. El mail de derivación salió con el asunto `[PEDIDO_MAYORISTA] Bar en Palermo - 48 botellas de Malbec y 24 de gin`.
+- Se envió el mail del Execution Log a supervisión.
+- Respuesta al cliente: *"Ya le pasé tu consulta al equipo comercial; un vendedor te va a contactar a la brevedad."*
